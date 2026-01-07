@@ -10,6 +10,7 @@ const SEAT_RULES = {
 
 export  const isSeatCountValid = (seats, serviceType, busClass = "") => {
     console.log(seats,serviceType,busClass);
+    
   if (!Number.isInteger(seats) || seats <= 0) {
     return false;
   }

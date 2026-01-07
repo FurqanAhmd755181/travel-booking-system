@@ -1,4 +1,4 @@
-export async function checkAvailability(formData) {
+export async function checkAvailability(formData, options = { checkOnly: false }) {
   try {
     const res = await fetch(
       "http://localhost:5000/api/booking/check-availability",
@@ -12,11 +12,14 @@ export async function checkAvailability(formData) {
     const data = await res.json();
 
     if (!res.ok) {
-      throw new Error(errorData.message || "Avaliablity check Failed");
+      throw new Error(data.message || "Availability check failed");
     }
 
-    return data;
-    
+    if (options.checkOnly) {
+      return { available: data.available };
+    }
+
+    return data; // full data for Availability page
   } catch (error) {
     console.log(error);
     return {

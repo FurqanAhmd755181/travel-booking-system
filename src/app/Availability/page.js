@@ -1,105 +1,132 @@
-// app/availability/page.jsx
-"use client";
+"use client"
 
-const vehicles = [
-  {
-    id: 1,
-    type: "Bus",
-    vehicleNo: "SW-101",
-    totalSeats: 40,
-    bookedSeats: [1, 2, 5, 6, 10, 11],
-  },
-  {
-    id: 2,
-    type: "Bus",
-    vehicleNo: "SW-202",
-    totalSeats: 40,
-    bookedSeats: [3, 4, 7, 8, 12, 15, 18],
-  },
-  {
-    id: 3,
-    type: "Van",
-    vehicleNo: "VN-12",
-    totalSeats: 15,
-    bookedSeats: [1, 2, 3],
-  },
-  {
-    id: 4,
-    type: "Full Car",
-    vehicleNo: "CAR-88",
-    totalSeats: 4,
-    bookedSeats: [],
-  },
-];
+import { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
+// import { getAvailability } from "@/services/booking.api";
+import { checkAvailability } from "@/services/booking.api";
+import AvailabilityList from "@/components/Avalibility/VehicleList";
 
-export default function Availability() {
+const Avaliablity = () => {
+
+  const searchParams = useSearchParams();
+
+  const route = searchParams.get("route");
+  const date = searchParams.get("date");
+  const servicType = searchParams.get("servicType");
+  const busClass = searchParams.get("busClass")
+  const seats = Number(searchParams.get("seats"));
+
+  const [vehicles, setVehicle] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  
+ 
+
+  const fetchAvaliablity = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const data = await checkAvailability({route, date, servicType, seats, busClass});
+
+      if (!data.available) {
+        setError(data.message || "No vehicles available");
+        setVehicle([]);
+        return;
+      }
+
+      setVehicle(data.vehicles || [] );
+    } catch (error) {
+      setError(error.message || "failed to fetch the Avaliablity");
+    } finally {
+      setLoading(false);
+    }
+  }, [route, date, servicType, seats, busClass]);
+
+  useEffect(() => {
+    fetchAvaliablity();
+  }, [fetchAvaliablity]);
+
+  const handleSelectVehicle = (vehicle) => {
+    console.log("Vehicle selected:", vehicle);
+    // Navigate to seat booking or confirm page
+  };
+
+  if (loading) return <p>Loading Available Vehicles.....</p>;
+  if (error) return <p className="text-red-600">{error}</p>;
+
   return (
     <section className="max-w-6xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6">
-        Available Vehicles
-      </h1>
-
-      <div className="grid md:grid-cols-2 gap-6">
-        {vehicles.map((vehicle) => {
-          const availableSeats =
-            vehicle.totalSeats - vehicle.bookedSeats.length;
-
-          return (
-            <div
-              key={vehicle.id}
-              className="border rounded-lg shadow p-5 bg-white"
-            >
-              {/* Header */}
-              <div className="flex justify-between items-center mb-3">
-                <h2 className="text-xl font-semibold">
-                  {vehicle.type}
-                </h2>
-                <span className="text-sm text-gray-500">
-                  Vehicle No: {vehicle.vehicleNo}
-                </span>
-              </div>
-
-              {/* Seat Info */}
-              <div className="text-sm text-gray-700 mb-3">
-                <p>Total Seats: {vehicle.totalSeats}</p>
-                <p className="text-red-600">
-                  Booked Seats: {vehicle.bookedSeats.length}
-                </p>
-                <p className="text-green-600 font-semibold">
-                  Available Seats: {availableSeats}
-                </p>
-              </div>
-
-              {/* Seat Layout */}
-              <div className="grid grid-cols-8 gap-2 mb-4">
-                {Array.from({ length: vehicle.totalSeats }).map((_, i) => {
-                  const seatNo = i + 1;
-                  const isBooked = vehicle.bookedSeats.includes(seatNo);
-
-                  return (
-                    <div
-                      key={seatNo}
-                      className={`text-xs text-center py-1 rounded
-                        ${
-                          isBooked
-                            ? "bg-red-500 text-white"
-                            : "bg-green-500 text-white"
-                        }`}
-                    >
-                      {seatNo}
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Action */}
-              <button className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition">
-                Select Vehicle
-              </button>
-            </div>
-          );
-        })}
-      </div>
+      <h1 className="text-3xl font-bold mb-6">Available Vehicles</h1>
+      <AvailabilityList
+        vehicles={vehicles}
+        servicType={vehicles.servicType}
+        onSelectVehicle={handleSelectVehicle}
+      />
     </section>
   );
-}
+};
+
+export default Avaliablity;
+
+
+// "use client";
+
+// import { useState, useEffect } from "react";
+// import AvailabilityList from "@/components/Avalibility/VehicleList";
+
+// const Availability = () => {
+//   const [vehicles, setVehicles] = useState([]);
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState("");
+
+//   // Mock vehicle data
+//   const mockVehicles = [
+//     {
+//       vehicleNo: "BUS-101",
+//       type: "Bus",
+//       totalSeats: 40,
+//       bookedSeats: [1, 2, 5, 10],
+//       departureTime: "08:00 AM",
+//     },
+//     {
+//       vehicleNo: "BUS-102",
+//       type: "Bus",
+//       totalSeats: 30,
+//       bookedSeats: [3, 4, 8],
+//       departureTime: "11:00 AM",
+//     },
+//     {
+//       vehicleNo: "BUS-103",
+//       type: "Mini Bus",
+//       totalSeats: 20,
+//       bookedSeats: [1, 2],
+//       departureTime: "02:00 PM",
+//     },
+//   ];
+
+//   useEffect(() => {
+//     // simulate API call
+//     setTimeout(() => {
+//       setVehicles(mockVehicles);
+//       setLoading(false);
+//     }, 800);
+//   }, []);
+
+//   const handleSelectVehicle = (vehicle) => {
+//     console.log("Vehicle selected:", vehicle);
+//   };
+
+//   if (loading) return <p className="p-6">Loading Available Vehicles...</p>;
+//   if (error) return <p className="p-6 text-red-600">{error}</p>;
+
+//   return (
+//     <section className="max-w-6xl mx-auto p-6">
+//       <h1 className="text-3xl font-bold mb-6">Available Vehicles</h1>
+//       <AvailabilityList vehicles={vehicles} onSelectVehicle={handleSelectVehicle} />
+//     </section>
+//   );
+// };
+
+// export default Availability;

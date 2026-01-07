@@ -43,18 +43,20 @@ const BookingForm = () => {
     }
 
     try {
-      const result = await checkAvailability(formData);
+      const result = await checkAvailability(formData, { checkOnly: true });
 
       if (!result.available) {
-
-        setError(result.message || "No availability found")
+        setError(result.message || "No availability found");
+        return;
       }
 
-      // route.push("/availability")
-
+      router.push(
+        `/availability?route=${formData.route}&date=${formData.date}&servicType=${formData.serviceType}&busClass=${formData.busClass}&seats=${formData.seats}`
+      );
     } catch (error) {
       setError(error.message || "something went wrong ");
     }
+
   };
 
   return (
@@ -67,7 +69,6 @@ const BookingForm = () => {
         value={formData.date}
         onChange={(value) => updateField("date", value)}
       />
-
       <ServiceSelect
         serviceType={formData.serviceType}
         busClass={formData.busClass}
